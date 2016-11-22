@@ -69,10 +69,14 @@ html, body {
       # default query lists projects, broken down by state.
       if project.has_key('uncompleted'):
         for todo in project['uncompleted']:
+          if todo['checked'] == 1:
+            continue
           results[proj_key].append(todo['content'])
       else:
       # queries with non-default filters are not.
         for item in data:
+          if item['checked'] == 1:
+            continue
           results[proj_key].append(item['content'])
     return results
 
