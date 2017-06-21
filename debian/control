@@ -10,7 +10,7 @@ Homepage: <insert the upstream URL, if relevant>
 
 Package: todoprint
 Architecture: all
-Depends: ${misc:Depends}
-Description: Experimental recipt printer
+Depends: ${misc:Depends} python
+Description: Experimental thermal receipt printer
  This is an experimental package for messing about with a Raspberry Pi and a
  thermal printer.
