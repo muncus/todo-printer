@@ -1,0 +1,3 @@
+gpio-listener.py /opt/todoprint/
+todolist.py /opt/todoprint/
+config.yml /opt/todoprint/
