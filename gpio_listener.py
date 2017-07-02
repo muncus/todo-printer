@@ -11,7 +11,7 @@ import subprocess
 PINLIST = [6, 13, 19, 26]
 DISPATCH = {
   6 : lambda: TodoListPrinter("inbox"),
-  13: lambda: RunExternal("echo bloop | lpr "),
+  23: lambda: TodoListPrinter('p1'),
 }
 
 def RunExternal(cmd):
@@ -22,7 +22,10 @@ def RunExternal(cmd):
 
 def TodoListPrinter(query=None):
   """Calls the todoist script, using the included query string."""
-  print "printing the thing: %s" % query
+  if not query:
+    query = 'viewall'
+  cmd_template = "/opt/todoprint/todolist.py -c /opt/todoprint/config.yml '{0}' | lpr"
+  RunExternal(cmd_template.format(query))
 
 
 GPIO.setmode(GPIO.BCM)
@@ -31,10 +34,10 @@ for pin in DISPATCH.keys():
 
 
 while True:
-  for pin in DISPATCH.keys().sorted():
+  for pin in DISPATCH.keys():
     input_state = GPIO.input(pin)
     # NB: "False" is ground. these pins are configured as pull-up.
     if input_state == False:
       DISPATCH[pin]()
-      time.sleep(0.2)
+      time.sleep(0.3)
     time.sleep(0.02)
