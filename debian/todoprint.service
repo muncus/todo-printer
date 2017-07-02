@@ -1,0 +1,10 @@
+[Unit]
+Description=GPIO listener for printing todo list
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/todoprint/gpio_listener.py
+
+[Install]
+WantedBy=multi-user.target
