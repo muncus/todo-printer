@@ -8,10 +8,12 @@ import RPi.GPIO as GPIO
 import time
 import subprocess
 
-PINLIST = [6, 13, 19, 26]
+# in order of appearance on the board:
+PINLIST = [26, 19, 13, 6 ]
+
 DISPATCH = {
-  6 : lambda: TodoListPrinter("inbox"),
-  23: lambda: TodoListPrinter('p1'),
+  26 : lambda: TodoListPrinter('p1'),
+  19 : lambda: TodoListPrinter("inbox"),
 }
 
 def RunExternal(cmd):
@@ -24,7 +26,7 @@ def TodoListPrinter(query=None):
   """Calls the todoist script, using the included query string."""
   if not query:
     query = 'viewall'
-  cmd_template = "/opt/todoprint/todolist.py -c /opt/todoprint/config.yml '{0}' | lpr"
+  cmd_template = "/opt/todoprint/todolist.py -c /opt/todoprint/config.yml -q '{0}' | lpr"
   RunExternal(cmd_template.format(query))
 
 
