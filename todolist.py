@@ -5,6 +5,7 @@ import todoist
 import yaml
 
 import argparse
+from pprint import pprint
 
 from jinja2 import Template
 
@@ -51,35 +52,52 @@ html, body {
 </body>
 """)
 
-  def __init__(self, auth_token=None):
+  def __init__(self, auth_token=None, config=None):
+    if config:
+      self._config = yaml.load(file(config))
+      self._stored_queries = self._config.get('queries', {})
+      auth_token = self._config.get('token', auth_token)
     self._client = todoist.TodoistAPI(token=auth_token)
     self._output_format = 'plain'
 
-  def todoItems(self, query=None):
+  def parseResultsByProject(self, result_obj):
+    """Parses a query result that's broken down by project and status."""
+    # NB: only the 'viewall' query appears this way, afaik.
+    results = {}
+    for query_result in result_obj:
+      data = query_result.get('data', [])
+      for project in data:
+        title = project.get('project_name', 'Result')
+        results[title] = [i.get('content', None) for i in project['uncompleted']]
+    return results
+
+  def parseResults(self, result_obj):
+    """Parses a list of query results into a dict by query."""
+    results = {}
+    for query_result in result_obj:
+      data = query_result.get('data', [])
+      title = query_result.get('query', 'Query Result')
+      results[title] = [i.get('content', None) for i in data]
+    return results
+
+  def query(self, query=None):
     """query syntax is poorly doc'd by todoist api docs."""
     if not query:
       query = "viewall"
-    results = {}
-    qresults = self._client.query([query])
+    # Check pre-configured stored queries.
+    if self._stored_queries.has_key(query):
+      query = self._stored_queries[query]
+
+    if not type(query) == type([]):
+      query = [query]
+
+    qresults = self._client.query(query)
     if not qresults:
       print "FAIL"
-    data = qresults[0].get('data', [])
-    for project in qresults[0].get('data', []):
-      proj_key = project.get('project_name', 'Query Results')
-      results[proj_key] = []
-      # default query lists projects, broken down by state.
-      if project.has_key('uncompleted'):
-        for todo in project['uncompleted']:
-          if todo['checked'] == 1:
-            continue
-          results[proj_key].append(todo['content'])
-      else:
-      # queries with non-default filters are not.
-        for item in data:
-          if item['checked'] == 1:
-            continue
-          results[proj_key].append(item['content'])
-    return results
+    if qresults[0].get('data', [{}])[0].get('project_name', None):
+      return self.parseResultsByProject(qresults)
+    else:
+      return self.parseResults(qresults)
 
   def asText(self, query=None):
     return self.asFormat('plain', query)
@@ -98,7 +116,7 @@ html, body {
       'markdown' : self._markdown_template,
     }
     t = output_formats[tmpl]
-    return t.render(projects=self.todoItems(query))
+    return t.render(projects=self.query(query))
 
 
 if __name__ == '__main__':
@@ -115,11 +133,10 @@ if __name__ == '__main__':
   args = parser.parse_args()
 
   if args.config:
-    cfg = yaml.load(file(args.config))
-    args.token = cfg['token']
-    l = TodoList(args.token)
+    lst = TodoList(auth_token=args.token, config=args.config)
+    #import pdb; pdb.set_trace()
     #print l.asText()
     #print l.asMarkdown()
     #print l.asPrinterHtml()
-    print l.asFormat(args.format, args.query)
+    print lst.asFormat(args.format, args.query)
 

@@ -12,7 +12,7 @@ import subprocess
 PINLIST = [26, 19, 13, 6 ]
 
 DISPATCH = {
-  26 : lambda: TodoListPrinter('p1'),
+  26 : lambda: TodoListPrinter('p123'),
   19 : lambda: TodoListPrinter("inbox"),
 }
 
